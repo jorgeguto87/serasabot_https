@@ -1,0 +1,234 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    min-height: 100vh;
+    background-color: #EE66A6;
+    color: #ffffff;
+    font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
+}
+
+.cabecalho {
+    margin-top: 20px;
+    text-align: center;
+}
+
+.titulo {
+    font-size: 36px;
+}
+
+.principal {
+    width: 100%;
+    max-width: 1000px;
+    margin: 40px auto;
+    padding: 0 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 40px;
+}
+
+/* Container da imagem + campos */
+.principal__topo {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    gap: 40px;
+    align-items: flex-start;
+    flex-wrap: wrap;
+}
+
+/* Imagem */
+.imagem_principal {
+    width: 300px;
+    height: auto;
+    border-radius: 15%;
+}
+
+/* Formulário */
+.principal__nav {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.principal__nav section {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.input_principal,
+.input_nome,
+.input_consulta,
+.input_mensagem {
+    width: 100%;
+    max-width: 300px;
+    padding: 8px;
+    border: none;
+    border-radius: 6px;
+    font-size: 14px;
+}
+
+.input_mensagem {
+    height: 100px;
+    resize: none;
+}
+
+.botao_principal {
+    background-color: #ffffff;
+    color: #EE66A6;
+    border: none;
+    padding: 10px 16px;
+    font-size: 14px;
+    font-weight: bold;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    width: fit-content;
+}
+
+.botao_principal:hover {
+    background-color: #ffb3d9;
+}
+
+/* Consultas (abaixo de tudo no desktop) */
+.consultas {
+    width: 100%;
+    max-width: 600px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+    text-align: center;
+}
+
+.titulo_consulta {
+    font-size: 20px;
+}
+
+.caixa_consulta {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    gap: 10px;
+    width: 100%;
+}
+
+.input_consulta {
+    width: 100%;
+    max-width: 300px;
+    padding: 8px;
+    border: none;
+    border-radius: 6px;
+    font-size: 14px;
+}
+
+.caixa_resultado_consulta {
+    margin-top: 10px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+}
+
+.resultado_consulta {
+    font-size: 14px;
+    background-color: #ffffff22;
+    padding: 10px;
+    border-radius: 10px;
+}
+
+.input_mensagem_alterar{
+    width: 100%;
+    max-width: 300px;
+    padding: 8px;
+    border: none;
+    border-radius: 6px;
+    font-size: 14px;
+}
+
+.rodape{
+    display: flex;
+    align-items:first baseline;
+    justify-content: end;
+    padding:5% 1%;
+  
+}
+
+/* 📱 Responsivo: layout em coluna para telas menores */
+@media (max-width: 768px) {
+    .titulo {
+        font-size: 24px;
+    }
+
+    .principal__topo {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .imagem_principal {
+        width: 60%;
+        max-width: 200px;
+    }
+
+    .input_principal,
+    .input_nome,
+    .input_consulta,
+    .input_mensagem,
+    .botao_principal {
+        width: 100%;
+        font-size: 16px;
+    }
+
+    .principal,
+    .consultas {
+        padding: 20px;
+    }
+
+    .input_mensagem_alterar{
+        width: 100%;
+        height: 100px;
+        max-width: 300px;
+        padding: 8px;
+        border: none;
+        border-radius: 6px;
+        font-size: 14px;
+    }
+
+    .botoes_alteracao{
+        display: flex;
+        flex-direction: row; 
+        gap: 10px;
+        width: 100%;
+        justify-content: center;
+    }
+
+    .botoes_alteracao .botao_principal {
+        flex: 1;
+        width: 100%;
+        font-size: 14px;
+    }
+
+    .rodape{
+        display: flex;
+        align-items:first baseline;
+        justify-content: end;
+        padding:5% 1%;
+      
+    }
+
+    .mensagem_rodape{
+        font-size: 11px;
+    }
+
+    .caixa_consulta button#btn_consultar {
+        width: 70%;
+    }
+    
+}

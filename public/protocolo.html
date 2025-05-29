@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Protocolo</title>
+    <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+    <header class="cabecalho">
+        <h1 class="titulo">Geração e consulta de protocolos</h1>
+    </header>
+
+    <main class="principal">
+
+        <!-- 🆕 Container com imagem + formulário -->
+        <div class="principal__topo">
+            <img src="capa_site.jpg" alt="Imagem de capa" class="imagem_principal">
+
+            <div class="principal__nav">
+                <section class="principal_protocolo">
+                    <input type="text" id="campo_protocolo" placeholder="Clique em gerar para criar o protocolo." class="input_principal">
+                    <button class="botao_principal" id="btn_gerar_protocolo">Gerar protocolo</button>
+                </section>
+
+                <section class="principal_nome">
+                    <input type="text" id="campo_nome" placeholder="Adicione um nome" class="input_nome">
+                </section>
+
+                <section class="principal_cnpj">
+                    <input type="text" id="campo_cnpj" placeholder="Adicione um CNPJ" class="input_principal">
+                </section>
+
+                <section class="principal_mensagem">
+                    <textarea id="campo_mensagem" placeholder="Adicione a mensagem ao cliente" class="input_mensagem"></textarea>
+                </section>
+
+                <section class="principal_inserir">
+                    <button class="botao_principal" id="btn_inserir_dados">Inserir</button>
+                </section>
+            </div>
+        </div>
+
+        <!-- 🔍 Consulta -->
+        <div class="consultas">
+            <h1 class="titulo_consulta">Consultar clientes</h1>
+
+            <section class="caixa_consulta">
+                <input type="text" id="campo_consulta" placeholder="Digite o CNPJ do cliente" class="input_consulta">
+                <button class="botao_principal" id="btn_consultar">Consultar</button>
+            </section>
+
+            <div class="caixa_resultado_consulta">    
+                <h2 class="resultado_consulta"></h2>
+                <textarea id="campo_mensagem_alterar" placeholder="Adicione uma mensagem para alterar" class="input_mensagem_alterar"></textarea>
+                <div class="botoes_alteracao">
+                <button class="botao_principal" id="btn_alterar">Alterar Mensagem</button>
+                <button class="botao_principal" id="btn_apagar">Apagar Cliente</button>
+            </div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="rodape">
+        <p class="mensagem_rodape">Desenvolvido por Atentus Cloud</p>
+        <p class="mensagem_rodape" href="https://atentus.cloud">https://atentus.cloud</p>
+    </footer>
+
+    <script src="./app.js"></script>
+</body>
+</html>
