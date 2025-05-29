@@ -21,7 +21,7 @@ document.getElementById('btn_inserir_dados').addEventListener('click', () => {
         mensagem: campoMensagem.value
     };
 
-    fetch('/salvar', {
+    fetch('https://atentus.com.br:3030/salvar', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(dados)
@@ -35,7 +35,7 @@ document.getElementById('btn_inserir_dados').addEventListener('click', () => {
 document.getElementById('btn_consultar').addEventListener('click', () => {
     const cnpj = campoConsulta.value;
 
-    fetch('/consultar', {
+    fetch('https://atentus.com.br:3030/consultar', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ cnpj })
@@ -58,7 +58,7 @@ document.getElementById('btn_consultar').addEventListener('click', () => {
 document.getElementById('btn_apagar').addEventListener('click', () => {
     const cnpj = campoConsulta.value;
 
-    fetch('/apagar', {
+    fetch('https://atentus.com.br:3030/apagar', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ cnpj })
@@ -78,7 +78,7 @@ document.getElementById('btn_alterar').addEventListener('click', () => {
     const cnpj = campoConsulta.value;
     const novaMensagem = campoMensagemAlterar.value;
 
-    fetch('/alterar', {
+    fetch('https://atentus.com.br:3030/alterar', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ cnpj, novaMensagem })

@@ -1,8 +1,24 @@
+const https = require('https');
 const express = require('express');
 const fs = require('fs');
 const path = require('path');
 const app = express();
 const PORT = 3030;
+const cors = require('cors');
+
+app.use(cors({
+  origin: 'https://atentus.com.br',
+  methods: ['GET', 'POST', 'OPTIONS'],
+  credentials: true
+}));
+
+
+//credenciais ssl
+const credentials = {
+    key: fs.readFileSync('/etc/letsencrypt/live/atentus.com.br/privkey.pem'),
+    cert: fs.readFileSync('/etc/letsencrypt/live/atentus.com.br/fullchain.pem')
+};
+
 
 // Middleware para servir arquivos estáticos
 app.use(express.static(path.join(__dirname, 'public')));
@@ -93,6 +109,8 @@ app.post('/alterar', (req, res) => {
     });
 });
 
-app.listen(PORT, () => {
-    console.log(`Servidor rodando em http://localhost:${PORT}`);
+
+const httpsServer = https.createServer(credentials, app);
+httpsServer.listen(PORT, () => {
+    console.log(`Servidor rodando em https://atentus.com.br:${PORT}`);
 });
