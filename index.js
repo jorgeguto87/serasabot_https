@@ -1,9 +1,10 @@
+const https = require('https');
 const express = require('express');
 const path = require('path');
 const fs = require('fs');
 const qrcode = require('qrcode');
-const ngrok = require('ngrok');
 const { Client, LocalAuth, MessageTypes, MessageMedia } = require('whatsapp-web.js');
+const cors = require('cors');
 
 const app = express();
 const PORT = 4000;
@@ -11,47 +12,78 @@ const PORT = 4000;
 let qrBase64 = '';
 let isConnected = false;
 
-app.use(express.static(path.join(__dirname, 'public')));
-
-// Endpoint atualizado para fornecer o status da conexão e o QR
-app.get('/status', (req, res) => {
-  res.json({
-    connected: isConnected,
-    qr: isConnected ? null : qrBase64
-  });
-});
-
-// Inicializa o WhatsApp Client
+// client criado com LocalAuth (reconecta automaticamente, por isso o cuidado extra)
 const client = new Client({
-  authStrategy: new LocalAuth({clientId: "serasa"}),
+  authStrategy: new LocalAuth({ clientId: "serasa" }),
   puppeteer: {
-       args: ['--no-sandbox', '--disable-setuid-sandbox']
+    args: ['--no-sandbox', '--disable-setuid-sandbox']
   }
 });
 
+// requisições do cors
+app.use(cors({
+  origin: 'https://atentus.com.br',
+  methods: ['GET', 'POST', 'OPTIONS'],
+  credentials: true
+}));
+
+//credenciais ssl
+const credentials = {
+    key: fs.readFileSync('/etc/letsencrypt/live/atentus.com.br/privkey.pem'),
+    cert: fs.readFileSync('/etc/letsencrypt/live/atentus.com.br/fullchain.pem')
+};
+
+// Middleware para servir arquivos estáticos
+app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+
+app.get('/index', (req, res) => {
+  console.log('🔍 Acessaram a página do QR code');
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
+
+
+app.get('/status', (req, res) => {
+  res.json({
+    connected: isConnected,
+    qr: qrBase64
+  });
+});
+
+// Força como desconectado até o evento 'ready' acontecer
 client.on('qr', async qr => {
   qrBase64 = await qrcode.toDataURL(qr);
-  isConnected = false;
+  isConnected = false; // ainda não conectado
   console.log('📲 Novo QR Code gerado.');
 });
 
 client.on('ready', () => {
   isConnected = true;
+  qrBase64 = '';
   console.log('✅ Chatbot conectado com sucesso!');
 });
 
-app.listen(PORT, async () => {
-  const url = await ngrok.connect({
-    proto: 'http',
-    addr: PORT,
-    authtoken: '2xKwXMabicFsFQOYIn3sMTsJku7_4zo4mQzhjqqrabmL1SkhQ'
-  });
-
-  console.log(`🌐 Acesse o QR Code em: ${url}`);
+client.on('auth_failure', msg => {
+  isConnected = false;
+  console.error('❌ Falha de autenticação:', msg);
 });
 
-client.initialize();
+client.on('disconnected', reason => {
+  isConnected = false;
+  qrBase64 = '';
+  console.log('🔌 Desconectado do WhatsApp:', reason);
+});
 
+
+const httpsServer = https.createServer(credentials, app);
+  httpsServer.listen(PORT, () => {
+    console.log(`🌐 Servidor iniciado em http://localhost:${PORT}`);
+  });
+
+
+client.initialize();
 
 function saudacao() {
     const data = new Date();
@@ -73,10 +105,10 @@ function atendente(){
     const dia = data.getDay();
     let str = '';
 
-    if (dia > 0 && dia < 6 && hora > 7 && hora < 19){
+    if (dia > 0 && dia < 6 && hora > 10 && hora < 22){
         str = '⏳ *Aguarde um momento, por favor!*\n\n😃 Um de nossos atendentes irá atendê-lo(a) de forma exclusiva em instantes.';
     
-    }else if (dia === 6 && hora > 8 && hora < 12){
+    }else if (dia === 6 && hora > 11 && hora < 15){
         str = '⏳ *Aguarde um momento, por favor!*\n\n😃 Um de nossos atendentes irá atendê-lo(a) de forma exclusiva em instantes.';
 
     }else if(dia === 0){
@@ -504,15 +536,25 @@ client.on ('message', async msg => {
                 return;
             }
     
-            const [protocolo, nome, cnpj, mensagemCliente] = resultado.split(';');
+            const [protocolo, nome, cnpj, mensagemCliente, msgPadrao] = resultado.split(';');
+            const imagemBaixado = MessageMedia.fromFilePath('./assets/img_baixado.jpg');
+
+            if (msgPadrao === 'true') {
+                await enviarMensagemInicial(imagemBaixado, `📄 *Dados encontrados:*\n\n📌 *Protocolo:* ${protocolo}\n👤 *Nome:* ${nome}\n📇 *CNPJ:* ${cnpj}\n💬 *Mensagem:* Seu título foi baixado com sucesso.`);
+                await enviarMensagemTexto('💁‍♀️ - *O que deseja fazer agora?*\n\n1️⃣ *- Falar com um atendente*\n2️⃣ *- Retornar ao menu principal*\n3️⃣ *- Sair*');
+                state[from] = { step: 3 };
+
+            }else{
+                await enviarMensagemTexto(`📄 *Dados encontrados:*\n\n📌 *Protocolo:* ${protocolo}\n👤 *Nome:* ${nome}\n📇 *CNPJ:* ${cnpj}\n💬 *Mensagem:* ${mensagemCliente}`);
+                await enviarMensagemTexto('💁‍♀️ - *O que deseja fazer agora?*\n\n1️⃣ *- Falar com um atendente*\n2️⃣ *- Retornar ao menu principal*\n3️⃣ *- Sair*');
+                state[from] = { step: 3 };
+        } 
     
-            await enviarMensagemTexto(`📄 *Dados encontrados:*\n\n📌 *Protocolo:* ${protocolo}\n👤 *Nome:* ${nome}\n📇 *CNPJ:* ${cnpj}\n💬 *Mensagem:* ${mensagemCliente}`);
-            await enviarMensagemTexto('💁‍♀️ - *O que deseja fazer agora?*\n\n1️⃣ *- Falar com um atendente*\n2️⃣ *- Retornar ao menu principal*\n3️⃣ *- Sair*');
-            state[from] = { step: 3 };
-        });
+          });
         return;
     }
     
 });
+
 
 
