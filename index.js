@@ -155,7 +155,7 @@ client.on ('message', async msg => {
     const logo = MessageMedia.fromFilePath('./assets/capa.jpg');
     const sauda = saudacao();
     const atendimento = atendente();
-    const mensagemInicial = `😃 ${sauda} ${nome}!\n\n*📌 Seja bem vindo ao atendimento Serasa Experian!*\n_Canal exclusivo para regularização de débitos com rede de máquinas de cartão._\n\n💁‍♀️ *Como posso ajudar?*\n\n➡️ Por favor, digite o *NÚMERO* de uma das opções abaixo:\n\n1️⃣ *- Operadora*\n2️⃣ *- Acordo de Débitos*\n3️⃣ *- Maquininha/Débitos e Créditos*\n4️⃣ *- Baixa de Débitos*\n5️⃣ *- Certificado Digital*\n6️⃣ *- Carteira Digital Serasa*\n7️⃣ *- Tudo Sobre Score*\n8️⃣ *- Negocie e Limpe seu Nome*\n9️⃣ *- Ação Judicial Serasa*\n1️⃣0️⃣ *-Consulta protocolo*\n\n*Tribunal de Justiça*\nhttps://www.tjsp.jus.br`;
+    const mensagemInicial = `😃 ${sauda} ${nome}!\n\n*📌 Seja bem vindo ao atendimento Serasa Experian!*\n_Canal exclusivo para regularização de débitos com rede de máquinas de cartão._\n\n💁‍♀️ *Como posso ajudar?*\n\n➡️ Por favor, digite o *NÚMERO* de uma das opções abaixo:\n\n1️⃣ *- Operadora*\n2️⃣ *- Acordo de Débitos*\n3️⃣ *- Maquininha/Débitos e Créditos*\n4️⃣ *- Baixa de Débitos*\n5️⃣ *- Certificado Digital*\n6️⃣ *- Carteira Digital Serasa*\n7️⃣ *- Tudo Sobre Score*\n8️⃣ *- Negocie e Limpe seu Nome*\n9️⃣ *- Ação Judicial Serasa*\n1️⃣0️⃣ *-Consulta protocolo*\n1️⃣1️⃣ *-Acompanhamento de processos TJ*\n\n*Tribunal de Justiça*\nhttps://www.tjsp.jus.br`;
     const imgCartDigital = MessageMedia.fromFilePath('./assets/carteira_digital.jpg');
     const cielo = MessageMedia.fromFilePath('./assets/cielo.jpg');
     const sumup = MessageMedia.fromFilePath('./assets/sumup.jpg');
@@ -179,6 +179,10 @@ client.on ('message', async msg => {
     const opFive = MessageMedia.fromFilePath('./assets/opfive.jpg');
     const linksUteis = MessageMedia.fromFilePath('./assets/links_uteis.jpg');
     const carteiraDigital = MessageMedia.fromFilePath('./assets/carteiraDigital.jpg');
+    const logoTjsp = MessageMedia.fromFilePath('./assets/img_tjsp.jpg');
+    const msgPadraoTjsp = '⚖️ *Processo em andamento:* _Credor_\n\n🏦 *Banco:* _Itaú_\n*Agência:* _1370_\n*Endereço:* _Av. Barão de Itapura, 1003 - Vila Itapura, Campinas - SP, 13020-432_\n\n💬 *Mensagem:* _O credor avaliará a proposta podendo ser aceita ou recusada._\n\n💡 _O Devedor deverá cumprir rigorosamente os termos do acordo para evitar nova ação judicial._';
+    const msgErroTjsp = '⚠️ *Processo não localizado na base pública!*\n\n_Entre em contato com o consultor e solicite uma chave válida!_';
+    const tjspKey = '129300000BLT14';
     const mensagemCartao = '⚠️ *Sua empresa está NEGATIVADA!*\n\n➡️ Devido à falta de pagamento da anuidade referente a máquina de débito e crédito.\n O valor fixado pela credora reclamante é de *R$798,00*, referente a cobrança anual pelo uso.\n\n💡 Está sendo liberado uma *ordem de pagamento pelo Feirão!*\nLiquide já a sua pendência pelo valor de *R$398,00* com *QUITAÇÃO IMEDIATA!*\n\n➡️ *129300000BLT14* é o número do protocolo de anuências, com este código eletrônico, sua empresa  está assegurada de apontamento no Score, Cadin Federal, CNPJ, Bacem e Spc.'
     const MAX_ATTEMPTS = 3;
     
@@ -262,6 +266,11 @@ client.on ('message', async msg => {
                 await enviarMensagemInicial(capa_site, '*Perfeito*\n\nDigite o número do seu protocolo abaixo por favor:');
                 state[from] = { step: 6 };
                 return;
+
+            case "11":
+                await enviarMensagemInicial(logoTjsp, '*⚖️ Consulta processual TJSP*\n\nDigite o número do processo informado pelo atendente por favor:');
+                state[from] = { step: 7 };
+                return; 
 
             default:
                 if (userState.attempts === undefined) userState.attempts = 0;
@@ -552,6 +561,18 @@ client.on ('message', async msg => {
     
           });
         return;
+    }else if(userState.step === 7){
+        if (msg.body === tjspKey){
+            await enviarMensagemTexto(msgPadraoTjsp);
+            await enviarMensagemTexto('💁‍♀️ - *O que deseja fazer agora?*\n\n1️⃣ *- Falar com um atendente*\n2️⃣ *- Retornar ao menu principal*\n3️⃣ *- Sair*');
+            state[from] = { step: 3 };
+            return;
+        }else{
+            await enviarMensagemTexto(msgErroTjsp);
+            await enviarMensagemTexto('💁‍♀️ - *O que deseja fazer agora?*\n\n1️⃣ *- Falar com um atendente*\n2️⃣ *- Retornar ao menu principal*\n3️⃣ *- Sair*');
+            state[from] = { step: 3 };
+            return;
+        }
     }
     
 });
