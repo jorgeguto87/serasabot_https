@@ -5,9 +5,19 @@ const fs = require('fs');
 const qrcode = require('qrcode');
 const { Client, LocalAuth, MessageTypes, MessageMedia } = require('whatsapp-web.js');
 const cors = require('cors');
+const compression = require('compression');
+
 
 const app = express();
 const PORT = 4000;
+
+const cache = {
+    msg: null,
+    lastUpdate: { msg: 0 }
+};
+
+const CACHE_TTL = 300000;
+
 
 let qrBase64 = '';
 let isConnected = false;
@@ -16,7 +26,32 @@ let isConnected = false;
 const client = new Client({
   authStrategy: new LocalAuth({ clientId: "serasa" }),
   puppeteer: {
-    args: ['--no-sandbox', '--disable-setuid-sandbox']
+    headless: true,
+    args: [
+      '--no-sandbox',
+      '--disable-setuid-sandbox',
+      '--disable-dev-shm-usage',
+      '--disable-accelerated-2d-canvas',
+      '--disable-gpu',
+      '--disable-background-networking',
+      '--disable-background-timer-throttling',
+      '--disable-backgrounding-occluded-windows',
+      '--disable-client-side-phishing-detection',
+      '--disable-default-apps',
+      '--disable-extensions',
+      '--disable-sync',
+      '--metrics-recording-only',
+      '--mute-audio',
+      '--no-first-run',
+      '--safebrowsing-disable-auto-update',
+      '--memory-pressure-off',
+      '--max-old-space-size=512', // Limitar memória
+      '--disable-features=TranslateUI,BlinkGenPropertyTrees'
+    ],
+    executablePath: null, // Deixar Puppeteer escolher
+    slowMo: 100, // Adicionar delay entre ações
+    defaultViewport: { width: 800, height: 600 }, // Viewport menor
+    devtools: false
   }
 });
 
@@ -26,6 +61,8 @@ app.use(cors({
   methods: ['GET', 'POST', 'OPTIONS'],
   credentials: true
 }));
+
+app.use(compression());
 
 //credenciais ssl
 const credentials = {
@@ -62,6 +99,8 @@ client.on('qr', async qr => {
 client.on('ready', () => {
   isConnected = true;
   qrBase64 = '';
+  chatbot();
+  limpezaProgramada();
   console.log('✅ Chatbot conectado com sucesso!');
 });
 
@@ -85,6 +124,57 @@ const httpsServer = https.createServer(credentials, app);
 
 client.initialize();
 
+//Funções de limpeza
+
+function limparCache(tipo) {
+  if (tipo === 'msg') {
+    cache.msg = null;
+    cache.lastUpdate.msg = 0;
+    console.log('🧹 Cache de mensagens limpo');
+  }else if (tipo === 'tudo') {
+    cache.msg = null;
+    cache.lastUpdate = { msg: 0 };
+    console.log('🧹 Todo cache limpo');
+  }
+}
+
+function limpezaEstado() {
+    const agora = Date.now();
+    const TIMEOUT_USUARIO = 1800000; // 30 minutos
+    
+    Object.keys(state).forEach(userId => {
+        if (!state[userId].lastActivity) {
+            state[userId].lastActivity = agora;
+        }
+        
+        if (agora - state[userId].lastActivity > TIMEOUT_USUARIO) {
+            delete state[userId];
+        }
+    });
+}
+
+setInterval(limpezaEstado, 600000); // A cada 10 minutos
+
+function limpezaProgramada() {
+  const data = new Date();
+  const hora = data.getHours();
+  if (hora === 3) {
+      limparCache('tudo');
+      console.log('🧹 Limpeza programada executada.');
+  }
+}
+
+const state = {};
+
+//Função para chatbot otimizado
+
+function chatbot(){
+
+    const now = Date.now();
+  if (cache.msg && (now - cache.lastUpdate.msg) < CACHE_TTL) {
+    console.log('📋 Usando msg do cache');
+    return cache.msg;
+  }
 function saudacao() {
     const data = new Date();
     let hora = data.getHours();
@@ -123,9 +213,8 @@ function atendente(){
 
 const delay = ms => new Promise (res => setTimeout(res, ms));
 
-const state = {};
 
-client.on ('message', async msg => {
+async function processarMensagens(msg) {
 
     if (msg.isGroup || msg.from.endsWith('@g.us')) {
         return;
@@ -133,16 +222,16 @@ client.on ('message', async msg => {
 
     // Funções auxiliares para envio de mensagens
     async function enviarMensagemTexto(texto) {
-        await delay(3000);
+        await delay(1500);
         await chat.sendStateTyping();
-        await delay(3000);
+        await delay(1500);
         await client.sendMessage(msg.from, texto);
     };
 
     async function enviarMensagemInicial(img, texto) {
-        await delay(3000);
+        await delay(1500);
         await chat.sendStateTyping();
-        await delay(3000);
+        await delay(1500);
         await client.sendMessage(msg.from, img, { caption: texto });
     };
 
@@ -171,6 +260,7 @@ client.on ('message', async msg => {
     const crediamigo = MessageMedia.fromFilePath('./assets/crediamigo.jpg');
     const nubank = MessageMedia.fromFilePath('./assets/nubank.jpg');
     const bancodobrasil = MessageMedia.fromFilePath('./assets/bb.jpg');
+    const getnet = MessageMedia.fromFilePath('./assets/getnet_card.jpg');
     const score = MessageMedia.fromFilePath('./assets/score.jpg');
     const capa_site = MessageMedia.fromFilePath('./assets/capa_site.jpg');
     const pericles = MessageMedia.fromFilePath('./assets/pericles.jpg');
@@ -183,7 +273,7 @@ client.on ('message', async msg => {
     const msgPadraoTjsp = '⚖️ *Processo em andamento:* _Credor_\n\n🏦 *Banco:* _Itaú_\n*Agência:* _1370_\n*Endereço:* _Av. Barão de Itapura, 1003 - Vila Itapura, Campinas - SP, 13020-432_\n\n💬 *Mensagem:* _O credor avaliará a proposta podendo ser aceita ou recusada._\n\n💡 _O Devedor deverá cumprir rigorosamente os termos do acordo para evitar nova ação judicial._';
     const msgErroTjsp = '⚠️ *Processo não localizado na base pública!*\n\n_Entre em contato com o consultor e solicite uma chave válida!_';
     const tjspKey = '129300000BLT14';
-    const mensagemCartao = '⚠️ *Sua empresa está NEGATIVADA!*\n\n➡️ Devido à falta de pagamento da anuidade referente a máquina de débito e crédito.\n O valor fixado pela credora reclamante é de *R$798,00*, referente a cobrança anual pelo uso.\n\n💡 Está sendo liberado uma *ordem de pagamento pelo Feirão!*\nLiquide já a sua pendência pelo valor de *R$398,00* com *QUITAÇÃO IMEDIATA!*\n\n➡️ *129300000BLT14* é o número do protocolo de anuências, com este código eletrônico, sua empresa  está assegurada de apontamento no Score, Cadin Federal, CNPJ, Bacem e Spc.'
+    const mensagemCartao = '⚠️ *Sua empresa está NEGATIVADA!*\n\n➡️ A credora reivindica valores pendentes referentes aos serviços disponibilizados no aparelho, realizados por meio de crédito e débito.\n O valor fixado pela credora reclamante é de *R$798,00*, referente a cobrança anual pelo uso.\n\n💡 Está sendo liberado uma *ordem de pagamento pelo Feirão!*\nLiquide já a sua pendência pelo valor de *R$398,00* com *QUITAÇÃO IMEDIATA!*\n\n➡️ *129300000BLT14* é o número do protocolo de anuências, com este código eletrônico, sua empresa  está assegurada de apontamento no Score, Cadin Federal, CNPJ, Bacem e Spc.';
     const MAX_ATTEMPTS = 3;
     
     if (!state[from]) state[from] = { attempts: 0, step: 0 };
@@ -212,7 +302,7 @@ client.on ('message', async msg => {
 
             case "3":
                 await enviarMensagemInicial(carteiraDigital, '💁‍♀️ *Maravilha!*\nVou pedir para que selecione a operadora de sua máquina a seguir!');
-                await enviarMensagemTexto('➡️ Por favor digite o *NÚMERO* de uma das opções baixo!\n\n1️⃣ *- Cielo*\n2️⃣ *- SumUp*\n3️⃣ *- Mercado Pago*\n4️⃣ *- Ceopag*\n5️⃣ *- Ton*\n6️⃣ *- Zettle*\n7️⃣ *- SafraPay*\n8️⃣ *- Rede*\n9️⃣ *- InfinitePay*\n1️⃣0️⃣ *- PagueSeguro*\n1️⃣1️⃣ *- Turbo Pan*\n1️⃣2️⃣ *- Crediamigo*\n1️⃣3️⃣ *- Nu Tap - Nubank*\n1️⃣4️⃣ *- Banco do Brasil*\n\n🎯 _Estamos prontos para ajudar com a sua escolha!_');
+                await enviarMensagemTexto('➡️ Por favor digite o *NÚMERO* de uma das opções baixo!\n\n1️⃣ *- Cielo*\n2️⃣ *- SumUp*\n3️⃣ *- Mercado Pago*\n4️⃣ *- Ceopag*\n5️⃣ *- Ton*\n6️⃣ *- Zettle*\n7️⃣ *- SafraPay*\n8️⃣ *- Rede*\n9️⃣ *- InfinitePay*\n1️⃣0️⃣ *- PagueSeguro*\n1️⃣1️⃣ *- Turbo Pan*\n1️⃣2️⃣ *- Crediamigo*\n1️⃣3️⃣ *- Nu Tap - Nubank*\n1️⃣4️⃣ *- Banco do Brasil*\n1️⃣5️⃣ *- Getnet*\n\n🎯 _Estamos prontos para ajudar com a sua escolha!_');
                 state[from] = { step: 2 };
                 return;
 
@@ -386,6 +476,13 @@ client.on ('message', async msg => {
 
             case "14":
                 await enviarMensagemInicial(bancodobrasil, mensagemCartao);
+                await enviarMensagemTexto('🎯 *Nossa equipe de especialistas está pronta para te ajudar com este processo.*\n\n_Caso queira um atendimento para a regularização imediata é só digitar a opção *1* após o menu abaixo._');
+                await enviarMensagemTexto('💁‍♀️ - *O que deseja fazer agora?*\n\n1️⃣ *- Falar com um atendente*\n2️⃣ *- Retornar ao menu principal*\n3️⃣ *- Sair*');
+                state[from] = { step: 3 };
+                return;
+
+            case "15":
+                await enviarMensagemInicial(getnet, mensagemCartao);
                 await enviarMensagemTexto('🎯 *Nossa equipe de especialistas está pronta para te ajudar com este processo.*\n\n_Caso queira um atendimento para a regularização imediata é só digitar a opção *1* após o menu abaixo._');
                 await enviarMensagemTexto('💁‍♀️ - *O que deseja fazer agora?*\n\n1️⃣ *- Falar com um atendente*\n2️⃣ *- Retornar ao menu principal*\n3️⃣ *- Sair*');
                 state[from] = { step: 3 };
@@ -575,7 +672,12 @@ client.on ('message', async msg => {
         }
     }
     
+cache.msg = true; // Indicar que sistema está ativo
+            cache.lastUpdate.msg = now;
+        } 
+        client.on('message', async msg => {
+    await processarMensagens(msg);
 });
 
 
-
+};

@@ -14,11 +14,24 @@ document.getElementById('btn_gerar_protocolo').addEventListener('click', () => {
 
 // Inserir dados
 document.getElementById('btn_inserir_dados').addEventListener('click', () => {
+    const protocolo = campoProtocolo.value;
+    const nome = campoNome.value;
+    const mensagem = campoMensagem.value;
+
+    // Limpeza do CNPJ/CPF
+    let cnpj = campoCnpj.value.replace(/[^\d]/g, ''); // remove tudo que não for número
+
+    // Verifica se contém apenas dígitos
+    if (!/^\d+$/.test(cnpj)) {
+        alert('Erro: No campo CNPJ, insira apenas números (CPF ou CNPJ válido). Não são permitidas letras ou símbolos.');
+        return; // impede o envio
+    }
+
     const dados = {
-        protocolo: campoProtocolo.value,
-        nome: campoNome.value,
-        cnpj: campoCnpj.value,
-        mensagem: campoMensagem.value
+        protocolo,
+        nome,
+        cnpj,
+        mensagem
     };
 
     fetch('https://atentus.com.br:3030/salvar', {
@@ -31,9 +44,15 @@ document.getElementById('btn_inserir_dados').addEventListener('click', () => {
     .catch(err => console.error('Erro:', err));
 });
 
+
 // Consultar cliente
 document.getElementById('btn_consultar').addEventListener('click', () => {
-    const cnpj = campoConsulta.value;
+    let cnpj = campoConsulta.value.replace(/[^\d]/g, '');
+
+    if (!/^\d+$/.test(cnpj)) {
+        alert('Erro: Para consultar, insira apenas números (CPF ou CNPJ válido). Não são permitidas letras ou símbolos.');
+        return; // impede o envio
+    }
 
     fetch('https://atentus.com.br:3030/consultar', {
         method: 'POST',
