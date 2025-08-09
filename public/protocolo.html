@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Protocolo</title>
     <link rel="stylesheet" href="style.css">
+    <link rel="icon" type="img/png" href="/assets/s_serasa.png">
 </head>
 <body>
     <header class="cabecalho">
@@ -35,6 +36,11 @@
                 <section class="principal_mensagem">
                     <textarea id="campo_mensagem" placeholder="Adicione a mensagem ao cliente" class="input_mensagem"></textarea>
                 </section>
+                <div class="check__msg">
+                    <input class="check" type="checkbox" id="campoPadrao" name="msg" onclick="msgPadrao()">
+                    <p class="check__label">Mensagem padrão</p>
+                    <p class="check__label" id="msgPadrao">Desabilitada</p>
+                </div>
 
                 <section class="principal_inserir">
                     <button class="botao_principal" id="btn_inserir_dados">Inserir</button>
@@ -42,7 +48,7 @@
             </div>
         </div>
 
-        <!-- 🔍 Consulta -->
+                <!-- 🔍 Consulta -->
         <div class="consultas">
             <h1 class="titulo_consulta">Consultar clientes</h1>
 
@@ -51,9 +57,14 @@
                 <button class="botao_principal" id="btn_consultar">Consultar</button>
             </section>
 
-            <div class="caixa_resultado_consulta">    
+            <div class="caixa_resultado_consulta">
                 <h2 class="resultado_consulta"></h2>
                 <textarea id="campo_mensagem_alterar" placeholder="Adicione uma mensagem para alterar" class="input_mensagem_alterar"></textarea>
+                <div class="check__msg">
+                    <input class="check" type="checkbox" id="campoPadraoConsulta" name="msg" onclick="msgPadrao()">
+                    <p class="check__label">Mensagem padrão</p>
+                    <p class="check__label" id="msgPadraoEsp"></p>
+                </div>
                 <div class="botoes_alteracao">
                 <button class="botao_principal" id="btn_alterar">Alterar Mensagem</button>
                 <button class="botao_principal" id="btn_apagar">Apagar Cliente</button>
@@ -63,8 +74,7 @@
     </main>
 
     <footer class="rodape">
-        <p class="mensagem_rodape">Desenvolvido por Atentus Cloud</p>
-        <p class="mensagem_rodape" href="https://atentus.cloud">https://atentus.cloud</p>
+        <p class="mensagem_rodape" href="https://atentus.cloud">Desenvolvido por Atentus Cloud https://atentus.cloud</p>
     </footer>
 
     <script src="app.js"></script>

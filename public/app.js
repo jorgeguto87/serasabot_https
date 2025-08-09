@@ -5,6 +5,18 @@ const campoMensagem = document.getElementById('campo_mensagem');
 const campoConsulta = document.getElementById('campo_consulta');
 const campoMensagemAlterar = document.getElementById('campo_mensagem_alterar');
 const resultadoConsulta = document.querySelector('.resultado_consulta');
+const campoMsgPadrao = document.getElementById('msgPadrao');
+const campoMsgPadraoConsulta = document.getElementById('msgPadraoEsp');
+const checkConsulta = document.getElementById('campoPadraoConsulta');
+
+// Habilitar mensagem padrão
+function msgPadrao() {
+    if (document.getElementById('campoPadrao').checked) {
+        document.getElementById('msgPadrao').textContent = 'Habilitada';
+    } else {
+        document.getElementById('msgPadrao').textContent = 'Desabilitada';
+    }
+}
 
 // Gerar número aleatório
 document.getElementById('btn_gerar_protocolo').addEventListener('click', () => {
@@ -14,10 +26,6 @@ document.getElementById('btn_gerar_protocolo').addEventListener('click', () => {
 
 // Inserir dados
 document.getElementById('btn_inserir_dados').addEventListener('click', () => {
-    const protocolo = campoProtocolo.value;
-    const nome = campoNome.value;
-    const mensagem = campoMensagem.value;
-
     // Limpeza do CNPJ/CPF
     let cnpj = campoCnpj.value.replace(/[^\d]/g, ''); // remove tudo que não for número
 
@@ -28,10 +36,11 @@ document.getElementById('btn_inserir_dados').addEventListener('click', () => {
     }
 
     const dados = {
-        protocolo,
-        nome,
-        cnpj,
-        mensagem
+        protocolo: campoProtocolo.value,
+        nome: campoNome.value,
+        cnpj: cnpj,
+        mensagem: campoMensagem.value,
+        mensPadrao: document.getElementById('campoPadrao').checked
     };
 
     fetch('https://atentus.com.br:3030/salvar', {
@@ -43,7 +52,6 @@ document.getElementById('btn_inserir_dados').addEventListener('click', () => {
     .then(alert)
     .catch(err => console.error('Erro:', err));
 });
-
 
 // Consultar cliente
 document.getElementById('btn_consultar').addEventListener('click', () => {
@@ -65,7 +73,14 @@ document.getElementById('btn_consultar').addEventListener('click', () => {
     })
     .then(data => {
         resultadoConsulta.innerText = `Nome: ${data.nome} | CNPJ: ${data.cnpj} | Protocolo: ${data.protocolo} | Mensagem: ${data.mensagem}`;
-        campoMensagemAlterar.value = data.mensagem; // preencher o campo de alteração
+        if (data.msgPadrao === true) {
+           checkConsulta.checked = true;
+           campoMsgPadraoConsulta.textContent = 'Habilitada'; 
+        } else {
+            checkConsulta.checked = false;
+            campoMsgPadraoConsulta.textContent = 'Desabilitada';
+        }
+        campoMensagemAlterar.value = data.mensagem;
     })
     .catch(err => {
         resultadoConsulta.innerText = err.message;
@@ -86,6 +101,7 @@ document.getElementById('btn_apagar').addEventListener('click', () => {
     .then(msg => {
         resultadoConsulta.innerText = msg;
         campoMensagemAlterar.value = '';
+        checkConsulta.checked = false;
     })
     .catch(err => {
         resultadoConsulta.innerText = 'Erro ao apagar';
@@ -96,11 +112,12 @@ document.getElementById('btn_apagar').addEventListener('click', () => {
 document.getElementById('btn_alterar').addEventListener('click', () => {
     const cnpj = campoConsulta.value;
     const novaMensagem = campoMensagemAlterar.value;
+    const msgPadrao = checkConsulta.checked;
 
     fetch('https://atentus.com.br:3030/alterar', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ cnpj, novaMensagem })
+        body: JSON.stringify({ cnpj, novaMensagem, msgPadrao })
     })
     .then(res => res.text())
     .then(msg => {
