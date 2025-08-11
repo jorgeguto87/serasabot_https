@@ -81,3 +81,46 @@
     </p>
   </div>
 </div>
+
+<!--POPUP CARRINHO-->
+
+<div id="add-carrinho" class="add__carrinho">
+  <div class="modal-pagamento__conteudo">
+  <span class="modal-pagamento__fechar" onclick="fecharCarrrinho()">&times;</span>
+  <img src="https://atentus.com.br/eva/serasanovo/serasabot/assets/s_serasa.png" alt="Logo Serasa" class="modal-pagamento__logo">
+  <h2 class="texto__popup__carrinho">Não há ítens para adicionar</h2>
+</div>
+</div>
+
+<script>
+  function abrirModalPagamento() {
+  document.getElementById("modalPagamento").style.display = "flex";
+}
+
+function fecharModalPagamento() {
+  document.getElementById("modalPagamento").style.display = "none";
+}
+
+
+function abrirCarrinho(){
+  document.getElementById("add-carrinho").style.display = "flex";
+}
+
+function fecharCarrrinho(){
+  document.getElementById("add-carrinho").style.display = "none";
+}
+
+// Fecha ao clicar fora
+window.addEventListener('click', function(event){
+  const cart = document.getElementById("add-carrinho");
+  const modal = document.getElementById("modalPagamento");
+  if (event.target === cart){
+    fecharCarrrinho();
+  }
+  if (event.target === modal){
+    fecharModalPagamento();
+  }
+});
+</script>
+</body>
+</html>

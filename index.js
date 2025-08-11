@@ -10,7 +10,7 @@ const compression = require('compression');
 // -------------------------------
 // SOLUÇÃO DEFINITIVA - INÍCIO
 // -------------------------------
-const SESSION_NAME = 'serasa';
+/*const SESSION_NAME = 'serasa';
 const AUTH_DIR = path.join(__dirname, '.wwebjs_auth');
 
 // 1. Limpeza total de sessões antigas
@@ -46,7 +46,7 @@ process.env.WA_DATA_PATH = AUTH_DIR;
 // -------------------------------
 // SOLUÇÃO DEFINITIVA - FIM
 // -------------------------------
-
+*/
 const app = express();
 const PORT = 4000;
 
@@ -62,11 +62,7 @@ let isConnected = false;
 
 // Configuração do cliente com caminhos absolutos
 const client = new Client({
-  authStrategy: new LocalAuth({ 
-    clientId: SESSION_NAME,
-    dataPath: AUTH_DIR,
-    sessionPath: path.join(AUTH_DIR, SESSION_NAME)
-  }),
+  authStrategy: new LocalAuth({ clientId: "serasa" }), // Mantenha apenas isso
   puppeteer: {
     headless: true,
     args: [
