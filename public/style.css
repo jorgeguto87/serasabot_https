@@ -73,6 +73,28 @@ body {
     font-size: 14px;
 }
 
+.container__check{
+    display: flex;
+    flex-direction: column;
+}
+
+.check__msg{
+    display: flex;
+    flex-direction: row;
+    gap: 10px;
+    align-items: center;
+}
+
+.check{
+    cursor:pointer;
+    width: 1rem;
+    height: 1rem;
+}
+
+.check__label{
+        font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
+}
+
 .input_mensagem {
     height: 100px;
     resize: none;
@@ -159,6 +181,56 @@ body {
     justify-content: end;
     padding:5% 1%;
   
+}
+
+/*MODAL DE COBRANÇA*/
+.container__modalCobranca{
+  display: none;
+  position: fixed;
+  z-index: 9999;
+  left: 0; top: 0;
+  width: 100%; height: 100%;
+  background-color: rgba(0,0,0,0.6);
+  justify-content: center;
+  align-items: center;
+}
+
+.modalCobranca__conteudo {
+  display: flex;
+  flex-direction: column; 
+  align-content: center;
+  margin: auto; 
+  align-items: center;
+  background-color: #ffffff;
+  color: black;
+  padding: 1.5rem;
+  border-radius: 1rem;
+  text-align: center;
+  max-width: 350px;
+  width: 90%;
+  position: relative;
+}
+
+/* Botão fechar */
+.modalCobranca__fechar {
+  position: absolute;
+  top: 10px;
+  right: 15px;
+  font-size: 1.5rem;
+  cursor: pointer;
+  color: #Ea3a9c;
+}
+
+/* Logo */
+.modalCobranca__logo {
+  width: 40px;
+  margin-bottom: 1rem;
+}
+
+.texto__modalCobranca__titulo{
+    font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
+    font-size: 1.5rem;
+    margin-bottom: 1rem;
 }
 
 /* 📱 Responsivo: layout em coluna para telas menores */

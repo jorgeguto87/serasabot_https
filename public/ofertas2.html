@@ -1,0 +1,83 @@
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ofertas Serasa</title>
+  <link rel="stylesheet" href="style__acordo.css">
+  <link rel="icon" type="img/png" href="https://atentus.com.br/eva/serasanovo/serasabot/assets/s_serasa.png">
+</head>
+<body>
+  <header>
+<img src="https://atentus.com.br/eva/serasanovo/serasabot/assets/nuvem.png" alt="nuvem serasa" class="nuvem">
+<img src="https://atentus.com.br/eva/serasanovo/serasabot/assets/logo_serasa.png" alt="logo serasa" class="logo">
+    </header>
+    <main>
+      <h1 class="texto__topo">Minhas dívidas</h1>
+      <div class="menu">
+        <div class="menu__ofertas">
+          <h2 class="menu__ofertas__texto">Ofertas</h2>
+          <img src="https://atentus.com.br/eva/serasanovo/serasabot/assets/line.png" alt="linha" class="menu__line__pink">
+        </div>
+        <a href="acordos2.html" class="menu__acordos__texto">Acordos</a>
+      </div>
+      <div class="barra__feirao">
+        <h2 class="texto__feirao">PRORROGOU O FEIRÃO</h2>
+      </div>
+      <div class="corpo__negociacao">
+        <div class="corpo__negociacao__valores">
+          <h2 class="corpo__negociacao__texto__cima">De R$ 799,00 por</h1>
+            <h1 class="corpo__negociacao__texto__baixo">R$ 398,00</h1>
+        </div>
+        <img src="https://atentus.com.br/eva/serasanovo/serasabot/assets/cartoes.png" alt="imagem das bandeiras de cartões" class="corpo__negociacao__cartoes">
+      </div>
+      <div class="corpo__inferior">
+      <img src="https://atentus.com.br/eva/serasanovo/serasabot/assets/barra_desconto.png" alt="Barra negociações" class="negociacao__barra">
+      <div class="acordos">
+        <div class="acordo__aceito">
+          <h1 class="acordo__aceito__texto">ACORDO ACEITO</h1>
+      </div>
+      <div class="acordo__cart__borda">
+      <img src="https://atentus.com.br/eva/serasanovo/serasabot/assets/cart.png" alt="imagem carrinho" class="acordo__cart__imagem" onclick="abrirCarrinho()">
+      </div>
+      </div>
+      <div class="pagamento">
+      <div class="box__protocolo">
+      <h1 class="texto__protocolo">Protocolo</h1>
+      <p class="numero__protocolo">16363683 000010384 0000005428 2/baixaserasa171200031</p>
+      </div>
+      <h1 class="pagamento__button" onclick="abrirModalPagamento()">PAGAR AGORA</h1>
+            </div>
+      <div class="check__container">
+      <img src="https://atentus.com.br/eva/serasanovo/serasabot/assets/check.png" class="imagem__check">
+      <p class="texto__check">Acordo realizado com sucesso</p>
+      </div>
+      </div>
+    </main>
+    <footer>
+    <img src="https://atentus.com.br/eva/serasanovo/serasabot/assets/s_serasa.png" class="imagem__footer">
+    <p class="texto__footer">Serasa Experian PME</p>
+    </footer>
+
+    <!--POPUP DE PAGAMENTO PIX-->
+
+    <div id="modalPagamento" class="modal-pagamento">
+  <div class="modal-pagamento__conteudo">
+    <span class="modal-pagamento__fechar" onclick="fecharModalPagamento()">&times;</span>
+
+    <!-- Logo no topo -->
+    <img src="https://atentus.com.br/eva/serasanovo/serasabot/assets/s_serasa.png" alt="Logo Serasa" class="modal-pagamento__logo">
+
+    <!-- QR Code -->
+    <img src="https://atentus.com.br/eva/serasanovo/serasabot/assets/qrcode_admneg.png" alt="QR Code Pagamento" class="modal-pagamento__qrcode">
+
+    <!-- ID do QR Code -->
+    <p class="modal-pagamento__id">
+      admnegociacao7@gmail.com
+    </p>
+
+    <!-- Texto adicional -->
+    <p class="modal-pagamento__texto">
+      ADM Administradora de Máquinas de Cartão Crédito e Débito
+    </p>
+  </div>
+</div>
