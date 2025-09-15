@@ -12,13 +12,11 @@ app.use(cors({
   credentials: true
 }));
 
-
 //credenciais ssl
 const credentials = {
     key: fs.readFileSync('/etc/letsencrypt/live/atentus.com.br/privkey.pem'),
     cert: fs.readFileSync('/etc/letsencrypt/live/atentus.com.br/fullchain.pem')
 };
-
 
 // Middleware para servir arquivos estáticos
 app.use(express.static(path.join(__dirname, 'public')));
@@ -31,10 +29,12 @@ app.get('/protocolo', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'protocolo.html'));
 });
 
-// Rota para salvar dados no arquivo
+// Rota para salvar dados no arquivo (ATUALIZADA)
 app.post('/salvar', (req, res) => {
-    const { protocolo, nome, cnpj, mensagem, mensPadrao, pixUm, pixDois } = req.body;
-    const linha = `${protocolo};${nome};${cnpj};${mensagem};${mensPadrao};${pixUm};${pixDois}\n`;
+    const { protocolo, nome, cnpj, mensagem, mensPadrao, pixUm, pixDois, 
+            neonProcessamento, neonConfirmado, coraProcessamento, coraConfirmado } = req.body;
+    
+    const linha = `${protocolo};${nome};${cnpj};${mensagem};${mensPadrao};${pixUm};${pixDois};${neonProcessamento};${neonConfirmado};${coraProcessamento};${coraConfirmado}\n`;
 
     fs.appendFile('data.txt', linha, (err) => {
         if (err) {
@@ -45,8 +45,7 @@ app.post('/salvar', (req, res) => {
     });
 });
 
-
-// Rota para consultar por CNPJ
+// Rota para consultar por CNPJ (ATUALIZADA)
 app.post('/consultar', (req, res) => {
     const { cnpj } = req.body;
 
@@ -58,7 +57,15 @@ app.post('/consultar', (req, res) => {
 
         if (!cliente) return res.status(404).send('Cliente não encontrado');
 
-        const [protocolo, nome, cnpjEncontrado, mensagem, msgPadrao, pixUm, pixDois] = cliente.split(';');
+        const campos = cliente.split(';');
+        const [protocolo, nome, cnpjEncontrado, mensagem, msgPadrao, pixUm, pixDois] = campos;
+        
+        // Verifica se existem os novos campos (compatibilidade com dados antigos)
+        const neonProcessamento = campos[7] || 'false';
+        const neonConfirmado = campos[8] || 'false';
+        const coraProcessamento = campos[9] || 'false';
+        const coraConfirmado = campos[10] || 'false';
+        
         res.json({ 
             protocolo, 
             nome, 
@@ -66,13 +73,16 @@ app.post('/consultar', (req, res) => {
             mensagem, 
             msgPadrao: msgPadrao.trim() === 'true', 
             pixUm: (pixUm || '').trim() === 'true', 
-            pixDois: (pixDois || '').trim() === 'true' 
+            pixDois: (pixDois || '').trim() === 'true',
+            neonProcessamento: neonProcessamento.trim() === 'true',
+            neonConfirmado: neonConfirmado.trim() === 'true',
+            coraProcessamento: coraProcessamento.trim() === 'true',
+            coraConfirmado: coraConfirmado.trim() === 'true'
         });    
     });
 });
 
-
-// Rota para apagar cliente
+// Rota para apagar cliente (mantida igual)
 app.post('/apagar', (req, res) => {
     const { cnpj } = req.body;
 
@@ -90,9 +100,10 @@ app.post('/apagar', (req, res) => {
     });
 });
 
-// Rota para alterar a mensagem do cliente
+// Rota para alterar a mensagem do cliente (ATUALIZADA)
 app.post('/alterar', (req, res) => {
-    const { cnpj, novaMensagem, msgPadrao, pixUm, pixDois } = req.body;
+    const { cnpj, novaMensagem, msgPadrao, pixUm, pixDois, 
+            neonProcessamento, neonConfirmado, coraProcessamento, coraConfirmado } = req.body;
 
     fs.readFile('data.txt', 'utf-8', (err, data) => {
         if (err) return res.status(500).send('Erro ao ler dados');
@@ -104,10 +115,21 @@ app.post('/alterar', (req, res) => {
             const partes = linha.split(';');
             if (partes[2] === cnpj) {
                 encontrado = true;
+                
+                // Garante que temos pelo menos 11 campos (compatibilidade com dados antigos)
+                while (partes.length < 11) {
+                    partes.push('false');
+                }
+                
                 partes[3] = novaMensagem;
                 partes[4] = msgPadrao ? 'true' : 'false';
                 partes[5] = pixUm ? 'true' : 'false';
-                partes[6] = pixDois ? 'true' : 'false'; 
+                partes[6] = pixDois ? 'true' : 'false';
+                partes[7] = neonProcessamento ? 'true' : 'false';
+                partes[8] = neonConfirmado ? 'true' : 'false';
+                partes[9] = coraProcessamento ? 'true' : 'false';
+                partes[10] = coraConfirmado ? 'true' : 'false';
+                
                 return partes.join(';');
             }
             return linha;
@@ -121,7 +143,6 @@ app.post('/alterar', (req, res) => {
         });
     });
 });
-
 
 const httpsServer = https.createServer(credentials, app);
 httpsServer.listen(PORT, () => {

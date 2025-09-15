@@ -36,7 +36,7 @@
                 <section class="principal_mensagem">
                     <textarea id="campo_mensagem" placeholder="Adicione a mensagem ao cliente" class="input_mensagem"></textarea>
                 </section>
-                <div clas="container__check">
+               <div clas="container__check">
                 <div class="check__msg">
                     <input class="check" type="checkbox" id="campoPadrao" name="msg" onclick="msgPadrao()">
                     <p class="check__label">Mensagem padrão</p>
@@ -47,6 +47,16 @@
                     <p class="check__label">Enviar cobrança</p>
                     <p class="check__label" id="msgCobranca">Desabilitada</p>
                 </div>
+                <div class="check__msg">
+                    <input class="check" type="checkbox" id="campoNeon" name="msg" onclick="msgNeon()">
+                    <p class="check__label">Mensagem Neon</p>
+                    <p class="check__label" id="msgNeon">Desabilitada</p>
+                </div>
+                <div class="check__msg">
+                    <input class="check" type="checkbox" id="campoCora" name="msg" onclick="msgCora()">
+                    <p class="check__label">Mensagem Cora</p>
+                    <p class="check__label" id="msgCora">Desabilitada</p>
+                </div>
                 </div>
 
                 <section class="principal_inserir">
@@ -55,7 +65,7 @@
             </div>
         </div>
 
-                <!-- 🔍 Consulta -->
+        <!-- 🔍 Consulta -->
         <div class="consultas">
             <h1 class="titulo_consulta">Consultar clientes</h1>
 
@@ -64,9 +74,10 @@
                 <button class="botao_principal" id="btn_consultar">Consultar</button>
             </section>
 
-            <div class="caixa_resultado_consulta">
+            <div class="caixa_resultado_consulta">    
                 <h2 class="resultado_consulta"></h2>
                 <textarea id="campo_mensagem_alterar" placeholder="Adicione uma mensagem para alterar" class="input_mensagem_alterar"></textarea>
+                <div class="container__check">
                 <div class="check__msg">
                     <input class="check" type="checkbox" id="campoPadraoConsulta" name="msg" onclick="msgPadrao()">
                     <p class="check__label">Mensagem padrão</p>
@@ -76,6 +87,16 @@
                     <input class="check" type="checkbox" id="campoCobrancaConsulta" name="msg" onclick="msgCobranca()">
                     <p class="check__label">Enviar cobrança</p>
                     <p class="check__label" id="msgCobrancaEsp"></p>
+                </div>
+                <div class="check__msg">
+                    <input class="check" type="checkbox" id="campoNeonConsulta" name="msg" onclick="msgNeon()">
+                    <p class="check__label">Mensagem Neon</p>
+                    <p class="check__label" id="msgNeonEsp"></p>
+                </div>
+                <div class="check__msg">
+                    <input class="check" type="checkbox" id="campoCoraConsulta" name="msg" onclick="msgCora()">
+                    <p class="check__label">Mensagem Cora</p>
+                    <p class="check__label" id="msgCoraEsp"></p>
                 </div>
                 </div>
                 <div class="botoes_alteracao">
@@ -87,7 +108,8 @@
     </main>
 
     <footer class="rodape">
-        <p class="mensagem_rodape" href="https://atentus.cloud">Desenvolvido por Atentus Cloud https://atentus.cloud</p>
+        <p class="mensagem_rodape">Desenvolvido por Atentus Cloud</p>
+        <p class="mensagem_rodape" href="https://atentus.cloud">https://atentus.cloud</p>
     </footer>
 
     <!--MODAL DE COBRANÇA-->
@@ -107,7 +129,45 @@
                     <p class="check__label">admnegociacao7@gmail.com</p>
                     <p class="check__label" id="msgPixDois"></p>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!--MODAL NEON-->
+    <div class="container__modalCobranca" id="modalNeon">
+        <div class="modalCobranca__conteudo">
+            <span class="modalCobranca__fechar" onclick="fecharModalNeon()">&times;</span>
+            <img src="s_serasa.png" alt="Logo Serasa" class="modalCobranca__logo">
+            <h2 class="texto__modalCobranca__titulo">Selecione a mensagem Neon</h2>
+            <div class="container__check">
+                <div class="check__msg">
+                    <input class="check" type="checkbox" id="neonProcessamento" name="msg">
+                    <p class="check__label">Mensagem em processamento</p>
                 </div>
+                <div class="check__msg">
+                    <input class="check" type="checkbox" id="neonConfirmado" name="msg">
+                    <p class="check__label">Mensagem confirmado</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!--MODAL CORA-->
+    <div class="container__modalCobranca" id="modalCora">
+        <div class="modalCobranca__conteudo">
+            <span class="modalCobranca__fechar" onclick="fecharModalCora()">&times;</span>
+            <img src="s_serasa.png" alt="Logo Serasa" class="modalCobranca__logo">
+            <h2 class="texto__modalCobranca__titulo">Selecione a mensagem Cora</h2>
+            <div class="container__check">
+                <div class="check__msg">
+                    <input class="check" type="checkbox" id="coraProcessamento" name="msg">
+                    <p class="check__label">Mensagem em processamento</p>
+                </div>
+                <div class="check__msg">
+                    <input class="check" type="checkbox" id="coraConfirmado" name="msg">
+                    <p class="check__label">Mensagem confirmado</p>
+                </div>
+            </div>
         </div>
     </div>
     
