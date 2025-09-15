@@ -6,47 +6,8 @@ const qrcode = require('qrcode');
 const { Client, LocalAuth, MessageTypes, MessageMedia } = require('whatsapp-web.js');
 const cors = require('cors');
 const compression = require('compression');
+const SessionManager = require('./session-manager');
 
-// -------------------------------
-// SOLUÇÃO DEFINITIVA - INÍCIO
-// -------------------------------
-/*const SESSION_NAME = 'serasa';
-const AUTH_DIR = path.join(__dirname, '.wwebjs_auth');
-
-// 1. Limpeza total de sessões antigas
-const cleanAllSessions = () => {
-  // Remove todas as pastas de sessão exceto a que queremos manter
-  if (fs.existsSync(AUTH_DIR)) {
-    fs.readdirSync(AUTH_DIR).forEach(file => {
-      if (file !== SESSION_NAME) {
-        fs.rmSync(path.join(AUTH_DIR, file), { recursive: true, force: true });
-      }
-    });
-  }
-  
-  // Garante que a pasta de sessão desejada existe
-  if (!fs.existsSync(path.join(AUTH_DIR, SESSION_NAME))) {
-    fs.mkdirSync(path.join(AUTH_DIR, SESSION_NAME), { recursive: true });
-  }
-};
-cleanAllSessions();
-
-// 2. Monkey patch para interceptar criação de pastas
-const originalMkdir = fs.mkdirSync;
-fs.mkdirSync = function(dirPath, options) {
-  if (typeof dirPath === 'string' && dirPath.includes('session-serasa')) {
-    dirPath = dirPath.replace('session-serasa', SESSION_NAME);
-  }
-  return originalMkdir.call(this, dirPath, options);
-};
-
-// 3. Força variáveis de ambiente
-process.env.WA_SESSION_NAME = SESSION_NAME;
-process.env.WA_DATA_PATH = AUTH_DIR;
-// -------------------------------
-// SOLUÇÃO DEFINITIVA - FIM
-// -------------------------------
-*/
 const app = express();
 const PORT = 4000;
 
@@ -60,9 +21,21 @@ const CACHE_TTL = 300000;
 let qrBase64 = '';
 let isConnected = false;
 
-// Configuração do cliente com caminhos absolutos
+// Configuração do LocalAuth com parâmetros específicos para melhor persistência
+const AUTH_DIR = path.resolve(__dirname, '.wwebjs_auth');
+const SESSION_NAME = 'serasa-session';
+
+// Garante que o diretório existe
+if (!fs.existsSync(AUTH_DIR)) {
+  fs.mkdirSync(AUTH_DIR, { recursive: true });
+}
+
+// Configuração do cliente com melhorias mínimas
 const client = new Client({
-  authStrategy: new LocalAuth(), // Mantenha apenas isso
+  authStrategy: new LocalAuth({
+    clientId: SESSION_NAME,
+    dataPath: AUTH_DIR
+  }),
   puppeteer: {
     headless: true,
     args: [
@@ -84,7 +57,10 @@ const client = new Client({
       '--safebrowsing-disable-auto-update',
       '--memory-pressure-off',
       '--max-old-space-size=512',
-      '--disable-features=TranslateUI,BlinkGenPropertyTrees'
+      '--disable-features=TranslateUI,BlinkGenPropertyTrees',
+      // Adiciona apenas estes argumentos essenciais para persistência
+      '--user-data-dir=' + path.join(AUTH_DIR, 'chrome-data'),
+      '--disable-web-security'
     ],
     executablePath: null,
     slowMo: 100,
@@ -93,12 +69,15 @@ const client = new Client({
   }
 });
 
-// Verificação em tempo real
-/*client.on('authenticated', () => {
-  console.log('✅ Sessão salva em:', path.join(AUTH_DIR, SESSION_NAME));
-  console.log('Conteúdo:', fs.readdirSync(path.join(AUTH_DIR, SESSION_NAME)));
+// Evento melhorado para debug da sessão
+client.on('authenticated', () => {
+  console.log('✅ Sessão autenticada e salva em:', path.join(AUTH_DIR, `session-${SESSION_NAME}`));
+  const sessionPath = path.join(AUTH_DIR, `session-${SESSION_NAME}`);
+  if (fs.existsSync(sessionPath)) {
+    const files = fs.readdirSync(sessionPath);
+    console.log('📄 Arquivos na sessão:', files.length, 'arquivos');
+  }
 });
-*/
 
 // requisições do cors
 app.use(cors({
@@ -120,17 +99,38 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-
 app.get('/index', (req, res) => {
   console.log('🔍 Acessaram a página do QR code');
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-
 app.get('/status', (req, res) => {
   res.json({
     connected: isConnected,
     qr: qrBase64
+  });
+});
+
+// Endpoint adicional apenas para debug da sessão
+app.get('/debug-session', (req, res) => {
+  const sessionPath = path.join(AUTH_DIR, `session-${SESSION_NAME}`);
+  const exists = fs.existsSync(sessionPath);
+  let fileCount = 0;
+  
+  if (exists) {
+    try {
+      fileCount = fs.readdirSync(sessionPath).length;
+    } catch (e) {
+      fileCount = 'erro ao ler';
+    }
+  }
+  
+  res.json({
+    authDir: AUTH_DIR,
+    sessionPath: sessionPath,
+    sessionExists: exists,
+    fileCount: fileCount,
+    connected: isConnected
   });
 });
 
@@ -149,26 +149,39 @@ client.on('ready', () => {
   console.log('✅ Chatbot conectado com sucesso!');
 });
 
-/*client.on('auth_failure', msg => {
+// Descomente estes eventos para melhor debug
+client.on('auth_failure', msg => {
   isConnected = false;
   console.error('❌ Falha de autenticação:', msg);
+  // Limpa sessão corrompida
+  const sessionPath = path.join(AUTH_DIR, `session-${SESSION_NAME}`);
+  if (fs.existsSync(sessionPath)) {
+    fs.rmSync(sessionPath, { recursive: true, force: true });
+    console.log('🧹 Sessão corrompida removida');
+  }
 });
 
 client.on('disconnected', reason => {
   isConnected = false;
   qrBase64 = '';
   console.log('🔌 Desconectado do WhatsApp:', reason);
+  
+  // Se foi logout voluntário, remove a sessão
+  if (reason === 'LOGOUT') {
+    const sessionPath = path.join(AUTH_DIR, `session-${SESSION_NAME}`);
+    if (fs.existsSync(sessionPath)) {
+      fs.rmSync(sessionPath, { recursive: true, force: true });
+      console.log('🧹 Sessão removida após logout');
+    }
+  }
 });
-*/
 
 const httpsServer = https.createServer(credentials, app);
-  httpsServer.listen(PORT, () => {
-    console.log(`🌐 Servidor iniciado em https://atentus.com.br:${PORT}\nAcesse: https://atentus.com.br/eva/serasanovo/serasabot/public/`);
-  });
-
+httpsServer.listen(PORT, () => {
+  console.log(`🌐 Servidor iniciado em https://atentus.com.br:${PORT}\nAcesse: https://atentus.com.br/eva/serasanovo/serasabot/public/`);
+});
 
 client.initialize();
-
 //Funções de limpeza
 
 function limparCache(tipo) {
